@@ -74,9 +74,9 @@ const config: Config = {
     extend: {},
   },
   plugins: [
-    tailwindcssAnimate, // ✅ Fix: Correctly imported animate plugin
-    addVariablesForColors, // ✅ Fix: Ensured proper typing for colors
-    customBackgrounds, // ✅ Fix: Used Tailwind’s `plugin()` function correctly
+    tailwindcssAnimate, 
+    addVariablesForColors, 
+    customBackgrounds,
   ],
 };
 

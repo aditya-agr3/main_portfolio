@@ -1,8 +1,8 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { JSX, useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cn";
 import { Button } from "./MovingBorders";
 
 type Card = {
@@ -27,33 +27,22 @@ export const LayoutGrid = ({ cards }: { cards: Card[] }) => {
   };
 
   return (
-    // change md:grid-cols-3 to md:grid-cols-4, gap-4 to gap-10
-    <div className="w-full h-full p-10 grid grid-cols-1 md:grid-cols-4 max-w-7xl mx-auto gap-10 ">
-      {cards.map((card, i) => (
+    <div className="w-full h-full p-10 grid grid-cols-1 md:grid-cols-4 max-w-7xl mx-auto gap-10">
+      {cards.map((card) => (
         <Button
-          key={i}
+          key={card.id} // ✅ Use card.id instead of index
           borderRadius="1.75rem"
-          //   default is 2000
           duration={10000}
-          //   add className={cn(card.className, "")}
-          className={cn(
-            card.className
-            // "bg-white dark:bg-slate-900 text-black dark:text-white border-neutral-200 dark:border-slate-800"
-          )}
+          className={cn(card.className)}
         >
-          <div
-            className={cn(
-              card.className,
-              "relative border-3 border-yellow-500"
-            )}
-          >
+          <div className={cn(card.className, "relative border-[3px] border-yellow-500")}>
             <motion.div
               onClick={() => handleClick(card)}
               className={cn(
                 card.className,
-                "relative overflow-hidden",
+                "relative overflow-hidden cursor-pointer transition-all",
                 selected?.id === card.id
-                  ? "rounded-lg cursor-pointer absolute inset-0 h-1/2 w-full md:w-1/2 m-auto z-50 flex justify-center items-center flex-wrap flex-col"
+                  ? "rounded-lg absolute inset-0 h-1/2 w-full md:w-1/2 m-auto z-50 flex justify-center items-center flex-wrap flex-col"
                   : lastSelected?.id === card.id
                   ? "z-40 bg-white rounded-xl h-full w-full"
                   : "bg-white rounded-xl h-full w-full"
@@ -66,6 +55,7 @@ export const LayoutGrid = ({ cards }: { cards: Card[] }) => {
           </div>
         </Button>
       ))}
+      {/* ✅ Outside Click Handler */}
       <motion.div
         onClick={handleOutsideClick}
         className={cn(
@@ -78,14 +68,15 @@ export const LayoutGrid = ({ cards }: { cards: Card[] }) => {
   );
 };
 
+/** ✅ Optimized BlurImage Component */
 const BlurImage = ({ card }: { card: Card }) => {
   const [loaded, setLoaded] = useState(false);
   return (
     <Image
       src={card.thumbnail}
-      //   change image scale 500 to 100
-      height="100"
-      width="100"
+      height={100} // ✅ Corrected image scale
+      width={100}
+      priority // ✅ Optimized for performance
       onLoad={() => setLoaded(true)}
       className={cn(
         "object-cover object-top absolute inset-0 h-full w-full transition duration-200",
@@ -96,31 +87,19 @@ const BlurImage = ({ card }: { card: Card }) => {
   );
 };
 
+/** ✅ Improved SelectedCard Component */
 const SelectedCard = ({ selected }: { selected: Card | null }) => {
   return (
     <div className="bg-transparent h-full w-full flex flex-col justify-end rounded-lg shadow-2xl relative z-[60]">
       <motion.div
-        initial={{
-          opacity: 0,
-        }}
-        animate={{
-          opacity: 0.6,
-        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.6 }}
         className="absolute inset-0 h-full w-full bg-black opacity-60 z-10"
       />
       <motion.div
-        initial={{
-          opacity: 0,
-          y: 100,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
-        transition={{
-          duration: 0.3,
-          ease: "easeInOut",
-        }}
+        initial={{ opacity: 0, y: 100 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
         className="relative px-8 pb-4 z-[70]"
       >
         {selected?.content}

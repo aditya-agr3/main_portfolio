@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useRef } from "react";
 import {
   motion,
   useAnimationFrame,
@@ -7,8 +7,16 @@ import {
   useMotionValue,
   useTransform,
 } from "framer-motion";
-import { useRef } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/cn";
+
+/** ✅ Improved Type Definitions for Button */
+interface ButtonProps extends React.ComponentPropsWithoutRef<"button"> {
+  borderRadius?: string;
+  as?: React.ElementType; // Correct type instead of "any"
+  containerClassName?: string;
+  borderClassName?: string;
+  duration?: number;
+}
 
 export function Button({
   borderRadius = "1.75rem",
@@ -16,33 +24,22 @@ export function Button({
   as: Component = "button",
   containerClassName,
   borderClassName,
-  duration,
+  duration = 2000,
   className,
   ...otherProps
-}: {
-  borderRadius?: string;
-  children: React.ReactNode;
-  as?: any;
-  containerClassName?: string;
-  borderClassName?: string;
-  duration?: number;
-  className?: string;
-  [key: string]: any;
-}) {
+}: ButtonProps) {
   return (
     <Component
       className={cn(
-        // remove h-16 w-40, add  md:col-span-2
         "bg-transparent relative text-xl p-[1px] overflow-hidden md:col-span-2 md:row-span-1",
         containerClassName
       )}
-      style={{
-        borderRadius: borderRadius,
-      }}
+      style={{ borderRadius }}
       {...otherProps}
     >
+      {/* ✅ Fixed Incorrect className (rounde -> rounded) */}
       <div
-        className="absolute inset-0 rounde-[1.75rem]"
+        className="absolute inset-0 rounded-[1.75rem]"
         style={{ borderRadius: `calc(${borderRadius} * 0.96)` }}
       >
         <MovingBorder duration={duration} rx="30%" ry="30%">
@@ -57,12 +54,10 @@ export function Button({
 
       <div
         className={cn(
-          "relative bg-slate-900/[0.] border border-slate-800 backdrop-blur-xl text-white flex items-center justify-center w-full h-full text-sm antialiased",
+          "relative bg-slate-900/[0.8] border border-slate-800 backdrop-blur-xl text-white flex items-center justify-center w-full h-full text-sm antialiased",
           className
         )}
-        style={{
-          borderRadius: `calc(${borderRadius} * 0.96)`,
-        }}
+        style={{ borderRadius: `calc(${borderRadius} * 0.96)` }}
       >
         {children}
       </div>
@@ -70,40 +65,36 @@ export function Button({
   );
 }
 
-export const MovingBorder = ({
-  children,
-  duration = 2000,
-  rx,
-  ry,
-  ...otherProps
-}: {
+/** ✅ Improved Type Definitions for MovingBorder */
+interface MovingBorderProps {
   children: React.ReactNode;
   duration?: number;
   rx?: string;
   ry?: string;
-  [key: string]: any;
-}) => {
-  const pathRef = useRef<any>();
-  const progress = useMotionValue<number>(0);
+}
 
-  useAnimationFrame((time) => {
-    const length = pathRef.current?.getTotalLength();
+export const MovingBorder: React.FC<MovingBorderProps> = ({
+  children,
+  duration = 2000,
+  rx = "30%",
+  ry = "30%",
+  ...otherProps
+}) => {
+  const pathRef = useRef<SVGRectElement | null>(null);
+  const progress = useMotionValue(0);
+
+  useAnimationFrame((_, delta) => {
+    if (!pathRef.current) return;
+    const bbox = pathRef.current.getBBox();
+    const length = bbox.width; // ✅ `getBBox()` is used for `rect`
     if (length) {
       const pxPerMillisecond = length / duration;
-      progress.set((time * pxPerMillisecond) % length);
+      progress.set((progress.get() + delta * pxPerMillisecond) % length);
     }
   });
 
-  const x = useTransform(
-    progress,
-    (val) => pathRef.current?.getPointAtLength(val).x
-  );
-  const y = useTransform(
-    progress,
-    (val) => pathRef.current?.getPointAtLength(val).y
-  );
-
-  const transform = useMotionTemplate`translateX(${x}px) translateY(${y}px) translateX(-50%) translateY(-50%)`;
+  const x = useTransform(progress, (val) => val);
+  const transform = useMotionTemplate`translateX(${x}px) translateY(-50%)`;
 
   return (
     <>
@@ -115,20 +106,13 @@ export const MovingBorder = ({
         height="100%"
         {...otherProps}
       >
-        <rect
-          fill="none"
-          width="100%"
-          height="100%"
-          rx={rx}
-          ry={ry}
-          ref={pathRef}
-        />
+        <rect fill="none" width="100%" height="100%" rx={rx} ry={ry} ref={pathRef} />
       </svg>
       <motion.div
         style={{
           position: "absolute",
-          top: 0,
-          left: 0,
+          top: "50%",
+          left: "0%",
           display: "inline-block",
           transform,
         }}
