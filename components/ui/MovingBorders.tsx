@@ -10,34 +10,38 @@ import {
 import { cn } from "@/utils/cn";
 
 /** ✅ Improved Type Definitions for Button */
-interface ButtonProps extends React.ComponentPropsWithoutRef<"button"> {
+interface ButtonProps<C extends React.ElementType = "button"> {
   borderRadius?: string;
-  as?: React.ElementType; // Correct type instead of "any"
+  as?: C; // Generic type for the dynamic element
   containerClassName?: string;
   borderClassName?: string;
   duration?: number;
+  className?: string;
+  children?: React.ReactNode;
 }
 
-export function Button({
+export function Button<C extends React.ElementType = "button">({
   borderRadius = "1.75rem",
   children,
-  as: Component = "button",
+  as: Component = "button" as C, // Type assertion for default value
   containerClassName,
   borderClassName,
   duration = 2000,
   className,
   ...otherProps
-}: ButtonProps) {
+}: ButtonProps<C> & Omit<React.ComponentPropsWithoutRef<C>, keyof ButtonProps>) {
+  // Extract props specific to the Component
+  const componentProps = {
+    className: cn(
+      "bg-transparent relative text-xl p-[1px] overflow-hidden md:col-span-2 md:row-span-1",
+      containerClassName
+    ),
+    style: { borderRadius },
+    ...otherProps,
+  } as React.ComponentPropsWithoutRef<C>; // Explicitly type the props
+
   return (
-    <Component
-      className={cn(
-        "bg-transparent relative text-xl p-[1px] overflow-hidden md:col-span-2 md:row-span-1",
-        containerClassName
-      )}
-      style={{ borderRadius }}
-      {...otherProps}
-    >
-      {/* ✅ Fixed Incorrect className (rounde -> rounded) */}
+    <Component {...componentProps}>
       <div
         className="absolute inset-0 rounded-[1.75rem]"
         style={{ borderRadius: `calc(${borderRadius} * 0.96)` }}
@@ -65,8 +69,8 @@ export function Button({
   );
 }
 
-/** ✅ Improved Type Definitions for MovingBorder */
-interface MovingBorderProps {
+/** Improved Type Definitions for MovingBorder */
+interface MovingBorderProps extends React.SVGProps<SVGSVGElement> {
   children: React.ReactNode;
   duration?: number;
   rx?: string;
@@ -86,7 +90,7 @@ export const MovingBorder: React.FC<MovingBorderProps> = ({
   useAnimationFrame((_, delta) => {
     if (!pathRef.current) return;
     const bbox = pathRef.current.getBBox();
-    const length = bbox.width; // ✅ `getBBox()` is used for `rect`
+    const length = bbox.width; // `getBBox()` is used for `rect`
     if (length) {
       const pxPerMillisecond = length / duration;
       progress.set((progress.get() + delta * pxPerMillisecond) % length);
