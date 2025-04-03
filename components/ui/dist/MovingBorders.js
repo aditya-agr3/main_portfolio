@@ -34,7 +34,9 @@ var cn_1 = require("@/utils/cn");
 function Button(_a) {
     var _b = _a.borderRadius, borderRadius = _b === void 0 ? "1.75rem" : _b, children = _a.children, _c = _a.as, Component = _c === void 0 ? "button" : _c, // Type assertion for default value
     containerClassName = _a.containerClassName, borderClassName = _a.borderClassName, _d = _a.duration, duration = _d === void 0 ? 2000 : _d, className = _a.className, otherProps = __rest(_a, ["borderRadius", "children", "as", "containerClassName", "borderClassName", "duration", "className"]);
-    return (react_1["default"].createElement(Component, __assign({ className: cn_1.cn("bg-transparent relative text-xl p-[1px] overflow-hidden md:col-span-2 md:row-span-1", containerClassName), style: { borderRadius: borderRadius } }, otherProps),
+    // Extract props specific to the Component
+    var componentProps = __assign({ className: cn_1.cn("bg-transparent relative text-xl p-[1px] overflow-hidden md:col-span-2 md:row-span-1", containerClassName), style: { borderRadius: borderRadius } }, otherProps); // Explicitly type the props
+    return (react_1["default"].createElement(Component, __assign({}, componentProps),
         react_1["default"].createElement("div", { className: "absolute inset-0 rounded-[1.75rem]", style: { borderRadius: "calc(" + borderRadius + " * 0.96)" } },
             react_1["default"].createElement(exports.MovingBorder, { duration: duration, rx: "30%", ry: "30%" },
                 react_1["default"].createElement("div", { className: cn_1.cn("h-20 w-20 opacity-[0.8] bg-[radial-gradient(#CBACF9_40%,transparent_60%)]", borderClassName) }))),
@@ -49,7 +51,7 @@ exports.MovingBorder = function (_a) {
         if (!pathRef.current)
             return;
         var bbox = pathRef.current.getBBox();
-        var length = bbox.width; // ✅ `getBBox()` is used for `rect`
+        var length = bbox.width; // `getBBox()` is used for `rect`
         if (length) {
             var pxPerMillisecond = length / duration;
             progress.set((progress.get() + delta * pxPerMillisecond) % length);
